@@ -126,16 +126,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	
 	  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-	    if (!(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config)) {
-	      this._init(nextProps.config, nextProps.content);
-	    }
 	    if (!(0, _lodashLangIsEqual2['default'])(this.props.id, nextProps.id)) {
 	      this.id = nextProps.id;
+	    }
+	    if (!(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config) || !(0, _lodashLangIsEqual2['default'])(this.props.id, nextProps.id)) {
+	      this._init((0, _lodashLangClone2['default'])(nextProps.config), nextProps.content);
+	      return;
+	    }
+	
+	    var editor = tinymce.EditorManager.get(this.id);
+	    if (!(0, _lodashLangIsEqual2['default'])(editor.getContent({ format: 'raw' }), nextProps.content)) {
+	      editor.setContent(nextProps.content);
+	
+	      editor.selection.select(editor.getBody(), true);
+	      editor.selection.collapse(false);
 	    }
 	  },
 	
 	  shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
-	    return !(0, _lodashLangIsEqual2['default'])(this.props.content, nextProps.content) || !(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config);
+	    return !(0, _lodashLangIsEqual2['default'])(this.props.config, nextProps.config);
 	  },
 	
 	  componentWillUnmount: function componentWillUnmount() {
@@ -170,10 +179,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    config.selector = '#' + this.id;
 	    config.setup = function (editor) {
 	      EVENTS.forEach(function (event, index) {
-	        var handler = _this.props[HANDLER_NAMES[index]];
-	        if (typeof handler !== 'function') return;
+	        if (!_this.props[HANDLER_NAMES[index]]) return;
 	        editor.on(event, function (e) {
 	          // native DOM events don't have access to the editor so we pass it here
+	          var handler = _this.props[HANDLER_NAMES[index]];
+	          if (typeof handler !== 'function') return;
 	          handler(e, editor);
 	        });
 	      });
